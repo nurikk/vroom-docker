@@ -35,6 +35,9 @@ jobs:
           echo "Building image vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
           docker buildx  --platform linux/amd64,linux/arm64 -t vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }} .
 
+      - name: Inspect image
+        run: docker buildx imagetools inspect vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}
+
       - name: Test tagged image
         run : sudo /bin/bash -c "./tests/test.sh vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
 
