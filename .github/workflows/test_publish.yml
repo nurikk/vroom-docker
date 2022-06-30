@@ -18,22 +18,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Extract tag name
         id: tag
         run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Build tagged Image
         run: |
           echo "Building image vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
-          docker build -t vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }} .
+          docker buildx build --output=type=registry --platform linux/amd64,linux/arm64 -t vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }} .
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}
 
       - name: Test tagged image
         run : sudo /bin/bash -c "./tests/test.sh vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}

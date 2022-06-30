@@ -24,12 +24,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Build Image
         run: |
           echo "Building image vroomvrp/vroom-docker:latest"
-          docker build -t vroomvrp/vroom-docker:latest .
+          docker buildx build --output=type=registry --platform linux/amd64,linux/arm64 -t vroomvrp/vroom-docker:latest .
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect vroomvrp/vroom-docker:latest
 
       - name: Test tagged image
         run : sudo /bin/bash -c "./tests/test.sh vroomvrp/vroom-docker:latest"
