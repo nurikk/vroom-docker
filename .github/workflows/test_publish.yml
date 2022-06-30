@@ -23,11 +23,17 @@ jobs:
       - name: Extract tag name
         id: tag
         run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Build tagged Image
         run: |
           echo "Building image vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
-          docker build -t vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }} .
+          docker buildx  --platform linux/amd64,linux/arm64 -t vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }} .
 
       - name: Test tagged image
         run : sudo /bin/bash -c "./tests/test.sh vroomvrp/vroom-docker:${{ steps.tag.outputs.TAG }}"
